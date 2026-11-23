@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#14213d">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Lotto Lab">
+<title>مختبر اللوتو</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@600;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* App shell: sticky header with game + language, one scrolling view, fixed 5-tab bar. Lotto-ball yellow on cool ink. */
+:root{
+  --bg:#f2f4f7; --surface:#ffffff; --ink:#14213d; --muted:#5b6578;
+  --line:#d9dee7; --accent:#f2b705; --accent-ink:#3a2c00; --ball:#1d3a6e; --ball-ink:#ffffff;
+  --good:#1f8a4c; --warn:#b4540a; --bar:#14213d; --bar-ink:#c9d2e3;
+  --display:"Noto Kufi Arabic",Tahoma,"Segoe UI",sans-serif;
+  --body:"IBM Plex Sans Arabic",Tahoma,"Segoe UI",sans-serif;
+  --nav-h:62px; color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0e1420; --surface:#172033; --ink:#e8ecf3; --muted:#9aa5b8; --line:#2a3550;
+  --accent:#f5c431; --accent-ink:#2a2000; --ball:#8fb2ff; --ball-ink:#0e1420;
+  --good:#4cc283; --warn:#f0a05a; --bar:#0a0f19; --bar-ink:#9aa5b8; color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#0e1420; --surface:#172033; --ink:#e8ecf3; --muted:#9aa5b8; --line:#2a3550;
+  --accent:#f5c431; --accent-ink:#2a2000; --ball:#8fb2ff; --ball-ink:#0e1420;
+  --good:#4cc283; --warn:#f0a05a; --bar:#0a0f19; --bar-ink:#9aa5b8; color-scheme:dark;}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.6;padding-top:env(safe-area-inset-top)}
+header.app{position:sticky;top:0;z-index:5;background:var(--bar);color:#fff;
+  padding:10px max(14px,env(safe-area-inset-right)) 10px max(14px,env(safe-area-inset-left));display:flex;align-items:center;gap:10px}
+.logo{width:32px;height:32px;border-radius:50%;background:var(--accent);color:#14213d;display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:.85rem;flex:none}
+header.app h1{font-family:var(--display);font-size:1.02rem;margin:0;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+header.app select{font:inherit;font-size:.8rem;background:var(--bar);color:#fff;border:1px solid rgba(255,255,255,.35);border-radius:8px;padding:5px 4px;width:auto;flex:none}
+#gameSel{max-width:118px} #langSel{width:52px}
+header.app select option{color:#14213d}
+main{max-width:720px;margin:0 auto;padding:14px max(14px,env(safe-area-inset-right)) calc(var(--nav-h) + 26px + env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left))}
+.view{display:none;flex-direction:column;gap:14px}
+.view.active{display:flex}
+h2{font-family:var(--display);font-size:1rem;margin:0;line-height:1.45;text-wrap:balance}
+h3{font-size:.95rem;margin:4px 0 0}
+p{margin:0}
+.muted{color:var(--muted)} .small{font-size:.83rem;color:var(--muted)}
+.err{color:var(--warn)} .okc{color:var(--good)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:12px;scroll-margin-top:70px}
+.card.note{background:transparent}
+.sub{display:flex;flex-direction:column;gap:8px;padding-top:12px;border-top:1px solid var(--line)}
+.test{display:flex;flex-direction:column;gap:8px;padding-top:10px;border-top:1px solid var(--line)}
+.test:first-of-type{border-top:0;padding-top:0}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.between{justify-content:space-between}
+.f1{flex:1}
+.btn{font:inherit;font-weight:600;border:0;border-radius:12px;padding:11px 16px;cursor:pointer;min-height:44px}
+.btn.sm{min-height:36px;padding:6px 12px;font-size:.85rem}
+.btn.primary{background:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn.block{width:100%}
+.btn:disabled{opacity:.5;cursor:default}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--ball);outline-offset:2px}
+.seg{display:flex;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.seg button{font:inherit;font-size:.88rem;flex:1;border:0;background:transparent;color:var(--ink);padding:8px 6px;cursor:pointer;min-height:40px}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg);font-weight:600}
+.progress{height:6px;background:var(--line);border-radius:3px;overflow:hidden}
+.progress>div{height:100%;width:0;background:var(--accent)}
+.verdict{border-inline-start:4px solid var(--good);padding-inline-start:10px}
+.bigmsg{font-family:var(--display);font-size:1.05rem;line-height:1.55}
+.grid{display:grid;grid-template-columns:repeat(var(--cols),1fr);gap:5px;direction:ltr}
+.grid button{font:inherit;font-variant-numeric:tabular-nums;aspect-ratio:1;border-radius:50%;border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer;padding:0;font-size:.9rem;min-width:0}
+.grid.small-balls button{font-size:.78rem}
+.grid button[aria-pressed="true"]{background:var(--ball);color:var(--ball-ink);border-color:var(--ball);font-weight:600}
+#gridExtra button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.balls{display:inline-flex;gap:5px;flex-wrap:wrap;direction:ltr;align-items:center}
+.ball{width:28px;height:28px;border-radius:50%;background:var(--ball);color:var(--ball-ink);font-size:.78rem;display:grid;place-items:center;font-weight:600;font-variant-numeric:tabular-nums;flex:none}
+.ball.x{background:transparent;color:var(--ink);border:2px solid var(--accent)}
+.ball.hit,.ball.hot{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.ball.cold{background:var(--muted);color:var(--surface)}
+.balls.big .ball{width:40px;height:40px;font-size:1rem}
+.balls.big{min-height:40px}
+.ball.pop{animation:pop .3s ease-out}
+@keyframes pop{from{transform:scale(.3);opacity:.2}to{transform:scale(1);opacity:1}}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
+.tile{border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.tile b{font-family:var(--display);font-size:1.05rem;font-variant-numeric:tabular-nums;line-height:1.35;overflow-wrap:anywhere}
+.tile.ref{background:color-mix(in srgb,var(--accent) 16%,transparent)}
+.tile.neg b{color:var(--warn)}
+.pill{display:inline-block;align-self:flex-start;padding:3px 10px;border-radius:999px;font-size:.8rem;font-weight:600;background:var(--line);color:var(--ink);white-space:nowrap}
+.pill.ok{background:color-mix(in srgb,var(--good) 18%,transparent);color:var(--good)}
+.pill.warn{background:color-mix(in srgb,var(--warn) 18%,transparent);color:var(--warn)}
+.meter{height:10px;background:var(--line);border-radius:5px;overflow:hidden}
+.meter>div{height:100%}
+.lv-low{background:var(--good)} .lv-mid{background:var(--accent)} .lv-high{background:var(--warn)}
+.reasons{margin:0;padding-inline-start:20px;font-size:.88rem}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums;font-size:.86rem}
+th,td{padding:7px 6px;text-align:center;border-bottom:1px solid var(--line);white-space:nowrap}
+th:first-child,td:first-child{text-align:start}
+thead th{color:var(--muted);font-weight:500}
+tr.theory td{background:color-mix(in srgb,var(--accent) 16%,transparent);font-weight:600}
+canvas{width:100%;display:block}
+.toolgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.toolbtn{font:inherit;text-align:start;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px;cursor:pointer;display:flex;flex-direction:column;gap:2px;color:var(--ink)}
+.toolbtn b{font-size:.92rem}
+.toolbtn span{font-size:.78rem;color:var(--muted);line-height:1.45}
+.toolbtn:active{transform:scale(.98)}
+.tlist{display:flex;flex-direction:column;gap:6px}
+.trow{display:flex;gap:6px;align-items:center;border:1px solid var(--line);border-radius:12px;padding:6px}
+.trow.on{border-color:var(--ball);box-shadow:inset 0 0 0 1px var(--ball)}
+.tsel{font:inherit;flex:1;display:flex;gap:8px;align-items:center;background:transparent;border:0;color:var(--ink);cursor:pointer;padding:2px;min-width:0}
+.tdel{font:inherit;background:transparent;border:0;color:var(--muted);cursor:pointer;width:34px;height:34px;border-radius:50%}
+.tnum{width:22px;height:22px;border-radius:6px;background:var(--line);display:grid;place-items:center;font-size:.75rem;font-weight:600;flex:none}
+.draws{display:flex;flex-direction:column;gap:8px}
+.drow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+label{display:flex;flex-direction:column;gap:4px;font-size:.83rem;color:var(--muted)}
+input,select{font:inherit;font-size:1rem;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:9px 10px;min-width:0;width:100%}
+.pick2{display:grid;grid-template-columns:1fr;gap:8px}
+.pickbtn{font:inherit;display:flex;gap:10px;align-items:center;justify-content:space-between;background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:12px;cursor:pointer;color:var(--ink)}
+.pickbtn:disabled{cursor:default;opacity:.85}
+nav.tabs{position:fixed;inset-inline:0;bottom:0;z-index:10;background:var(--surface);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);padding-bottom:env(safe-area-inset-bottom)}
+nav.tabs button{font:inherit;font-size:.68rem;border:0;background:transparent;color:var(--muted);cursor:pointer;height:var(--nav-h);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:0 2px}
+nav.tabs svg{width:23px;height:23px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+nav.tabs button[aria-current="page"]{color:var(--ink);font-weight:600}
+nav.tabs button[aria-current="page"] svg{stroke:var(--ball)}
+@media (prefers-reduced-motion:reduce){.ball.pop{animation:none}.toolbtn:active{transform:none}}
+</style>
+</head>
+<body>
+<header class="app">
+  <div class="logo" aria-hidden="true">49</div>
+  <h1 id="appTitle">مختبر اللوتو</h1>
+  <select id="gameSel"></select>
+  <select id="langSel"><option value="ar">AR</option><option value="de">DE</option><option value="en">EN</option></select>
+</header>
+<main>
+  <section class="view" id="v-home"></section>
+  <section class="view" id="v-ticket"></section>
+  <section class="view" id="v-real"></section>
+  <section class="view" id="v-lab"></section>
+  <section class="view" id="v-calc"></section>
+</main>
+<nav class="tabs">
+  <button data-view="home"><svg viewBox="0 0 24 24"><path d="M4 11l8-7 8 7v9H4z"/><path d="M10 20v-5h4v5"/></svg><span></span></button>
+  <button data-view="ticket"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M9 12h6M12 9v6"/></svg><span></span></button>
+  <button data-view="real"><svg viewBox="0 0 24 24"><path d="M3 20h18M6 16v-3M10 16V8M14 16v-5M18 16V6"/></svg><span></span></button>
+  <button data-view="lab"><svg viewBox="0 0 24 24"><path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-9V3"/><path d="M7.5 15h9"/></svg><span></span></button>
+  <button data-view="calc"><svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 12h2M12 12h2M8 16h2M12 16h2M16 12v4"/></svg><span></span></button>
+</nav>
+<script src="data.js"></script>
+<script src="i18n.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
